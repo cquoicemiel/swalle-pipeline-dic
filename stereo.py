@@ -1,83 +1,83 @@
 import cv2
 import numpy as np
+import open3d
 
-fx1 = 10731.6
-fy1 = 10731.8
-cx1 = 1257.89
-cy1 = 1010.97
-ka1 = -0.0449469
-ka2 = 1.2968
-ka3 = 0.000686857
-
-fx2 = 10776.4
-fy2 = 10781
-cx2 = 1223.65
-cy2 = 997.056
-kb1 = -0.0388554
-kb2 = 0.702762
-kb3 = 0
+# --- Calibration données ---
+fx1, fy1, cx1, cy1 = 10731.6, 10731.8, 1257.89, 1010.97
+fx2, fy2, cx2, cy2 = 10776.4, 10781, 1223.65, 997.056
+ka1, ka2, ka3 = -0.0449469, 1.2968, 0.000686857
+kb1, kb2, kb3 = -0.0388554, 0.702762, 0
 
 R = np.array([[0.863015, -0.00155128, -0.505176],
               [0.000800376, 0.999998, -0.00170345],
               [0.505178, 0.00106577, 0.863014]])
+T = np.array([307.603, 0.932237, 77.9891]) / 1000.0
 
-T = np.array([307.603, 0.932237, 77.9891]) / 1000.0  # mm → m
-
-K_left = np.array([[fx1, 0, cx1],
-                   [0, fy1, cy1],
-                   [0, 0, 1]])
-D_left = np.array([ka1, ka2, 0, 0, ka3])  # Pas de p1/p2
-
-K_right = np.array([[fx2, 0, cx2],
-                    [0, fy2, cy2],
-                    [0, 0, 1]])
+K_left = np.array([[fx1, 0, cx1], [0, fy1, cy1], [0, 0, 1]])
+D_left = np.array([ka1, ka2, 0, 0, ka3])
+K_right = np.array([[fx2, 0, cx2], [0, fy2, cy2], [0, 0, 1]])
 D_right = np.array([kb1, kb2, 0, 0, kb3])
 
-img_left = cv2.imread("./data/left/img0.tiff", cv2.IMREAD_UNCHANGED)
-img_right = cv2.imread("./data/right/img0.tiff", cv2.IMREAD_UNCHANGED)
+# --- Lecture images ---
+imgL = cv2.imread("./data/left/img0.tiff", cv2.IMREAD_UNCHANGED)
+imgR = cv2.imread("./data/right/img0.tiff", cv2.IMREAD_UNCHANGED)
 
-# vérifier le chargement
-if img_left is None or img_right is None:
-    raise ValueError("❌ Impossible de charger les images. Vérifie les chemins et formats.")
+# --- Normalisation si 16 bits ---
+if imgL.dtype == np.uint16:
+    imgL = cv2.convertScaleAbs(imgL, alpha=255.0/65535.0)
+if imgR.dtype == np.uint16:
+    imgR = cv2.convertScaleAbs(imgR, alpha=255.0/65535.0)
 
-#  Si TIFF 16 bits, normaliser en 8 bits
-if img_left.dtype == np.uint16:
-    img_left = cv2.convertScaleAbs(img_left, alpha=(255.0/65535.0))
-if img_right.dtype == np.uint16:
-    img_right = cv2.convertScaleAbs(img_right, alpha=(255.0/65535.0))
+# --- Taille image ---
+image_size = (imgL.shape[1], imgL.shape[0])
 
-# 🖼️Taille réelle des images
-image_size = (img_left.shape[1], img_left.shape[0])  # (largeur, hauteur)
-print("✅ Taille image :", image_size)
+# --- Rectification ---
+R1, R2, P1, P2, Q, _, _ = cv2.stereoRectify(K_left, D_left, K_right, D_right, image_size, R, T, flags=cv2.CALIB_ZERO_DISPARITY, alpha=0)
+map1x, map1y = cv2.initUndistortRectifyMap(K_left, D_left, R1, P1, image_size, cv2.CV_32FC1)
+map2x, map2y = cv2.initUndistortRectifyMap(K_right, D_right, R2, P2, image_size, cv2.CV_32FC1)
+rectifiedL = cv2.remap(imgL, map1x, map1y, cv2.INTER_LINEAR)
+rectifiedR = cv2.remap(imgR, map2x, map2y, cv2.INTER_LINEAR)
 
-# ♻️ Rectification
-R1, R2, P1, P2, Q, _, _ = cv2.stereoRectify(
-    K_left, D_left,
-    K_right, D_right,
-    image_size, R, T,
-    flags=cv2.CALIB_ZERO_DISPARITY,
-    alpha=0  # Mettre 1 ou -1 si nécessaire
-)
-
-# Calcul des maps de correction
-map1_left, map2_left = cv2.initUndistortRectifyMap(
-    K_left, D_left, R1, P1, image_size, cv2.CV_16SC2
-)
-map1_right, map2_right = cv2.initUndistortRectifyMap(
-    K_right, D_right, R2, P2, image_size, cv2.CV_16SC2
-)
-
-# 📸 Rectifier les images
-rect_left = cv2.remap(img_left, map1_left, map2_left, cv2.INTER_LINEAR)
-rect_right = cv2.remap(img_right, map1_right, map2_right, cv2.INTER_LINEAR)
-
-# 🖋️ Tracer des lignes horizontales pour vérifier l’alignement
-for y in range(0, image_size[1], 50):  # une ligne tous les 50 pixels
-    cv2.line(rect_left, (0, y), (image_size[0], y), (255, 255, 255), 1)
-    cv2.line(rect_right, (0, y), (image_size[0], y), (255, 255, 255), 1)
-
-# 👁️ Afficher les images rectifiées
-cv2.imshow("Rectified Left", rect_left)
-cv2.imshow("Rectified Right", rect_right)
+# --- Affichage lignes horizontales pour validation ---
+rectL_color = cv2.cvtColor(rectifiedL, cv2.COLOR_GRAY2BGR)
+rectR_color = cv2.cvtColor(rectifiedR, cv2.COLOR_GRAY2BGR)
+for y in range(0, image_size[1], 50):
+    cv2.line(rectL_color, (0, y), (image_size[0], y), (0, 255, 0), 1)
+    cv2.line(rectR_color, (0, y), (image_size[0], y), (0, 255, 0), 1)
+cv2.imshow("Rectified L", rectL_color)
+cv2.imshow("Rectified R", rectR_color)
 cv2.waitKey(0)
-cv2.destroyAllWindows()
+
+# --- Calcul disparité ---
+stereo = cv2.StereoSGBM_create(
+    minDisparity=0,
+    numDisparities=128,
+    blockSize=9,
+    P1=8*3*9**2,
+    P2=32*3*9**2,
+    disp12MaxDiff=1,
+    uniquenessRatio=10,
+    speckleWindowSize=100,
+    speckleRange=32
+)
+disparity = stereo.compute(rectifiedL, rectifiedR).astype(np.float32) / 16.0
+
+# --- Visualisation disparité ---
+disp_vis = cv2.normalize(disparity, None, 0, 255, cv2.NORM_MINMAX)
+disp_vis = np.uint8(disp_vis)
+cv2.imshow("Disparity Map", disp_vis)
+cv2.waitKey(0)
+
+# --- Projection 3D ---
+points_3D = cv2.reprojectImageTo3D(disparity, Q)
+mask = disparity > disparity.min()
+points = points_3D[mask]
+colors = rectL_color[mask]
+
+# --- Sauvegarde avec Open3D ---
+pcd = open3d.geometry.PointCloud()
+pcd.points = open3d.utility.Vector3dVector(points)
+pcd.colors = open3d.utility.Vector3dVector(colors / 255.0)
+open3d.io.write_point_cloud("./output/pointcloud_t0.ply", pcd)
+
+print("Disparity min/max:", np.min(disparity), np.max(disparity))
