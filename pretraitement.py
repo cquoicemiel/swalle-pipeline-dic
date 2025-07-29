@@ -12,7 +12,7 @@ def img_dim(img):
 
 
 def link_matches(img1, img2):
-    # On relie les éléments qui match le mieux          
+    # On relie les éléments qui se correspondent le mieux          
     orb = cv2.ORB_create(5000)
     kp1, des1 = orb.detectAndCompute(img1, None)
     kp2, des2 = orb.detectAndCompute(img2, None)
@@ -22,7 +22,7 @@ def link_matches(img1, img2):
     matches = sorted(matches, key=lambda x: x.distance)
 
     # Afficher les meilleurs matches
-    img_matches = cv2.drawMatches(img1, kp1, img2, kp2, matches[:80], None, flags=2) # en ajustant la limite du slice de matches on peut ajuster l'exigeance du matching
+    img_matches = cv2.drawMatches(img1, kp1, img2, kp2, matches[:120], None, flags=2) # en ajustant la limite du slice de matches on peut ajuster l'exigeance du matching
     return img_matches
 
 

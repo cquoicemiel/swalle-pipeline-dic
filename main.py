@@ -6,11 +6,11 @@ from pretraitement import denoise, resize_to_fit, link_matches, img_dim, diff
 from deplacement import motion_images, motion_to_hsv, draw_direction_wheel
 # from skimage.registration import optical_flow_tvl1
 
-# img1 = cv2.imread("./data/left/img0.tiff", cv2.IMREAD_GRAYSCALE)
-# img2 = cv2.imread("./data/left/img1.tiff", cv2.IMREAD_GRAYSCALE)
+img1 = cv2.imread("./data/left/img0.tiff", cv2.IMREAD_GRAYSCALE)
+img2 = cv2.imread("./data/right/img0.tiff", cv2.IMREAD_GRAYSCALE)
 
-# img1_denoised = denoise(img1)
-# img2_denoised = denoise(img2)
+img1_denoised = denoise(img1)
+img2_denoised = denoise(img2)
 
 # img1_denoised_color = cv2.cvtColor(img1_denoised, cv2.COLOR_GRAY2BGR)
 # img2_denoised_color = cv2.cvtColor(img2_denoised, cv2.COLOR_GRAY2BGR)
@@ -46,7 +46,7 @@ from deplacement import motion_images, motion_to_hsv, draw_direction_wheel
 
 # cv2.imshow("Images denoised", resize_to_fit(np.hstack((img1_denoised, img2_denoised))))
 
-# cv2.imshow("Correspondances", resize_to_fit(link_matches(img1_denoised, img2_denoised)))
+cv2.imshow("Correspondances", resize_to_fit(link_matches(img1_denoised, img2_denoised)))
 
 # cv2.imshow("Difference apres denoising", resize_to_fit(np.hstack((img1_denoised, cv2.convertScaleAbs(diff(img1, img1_denoised), alpha=3, beta=0)))))
 
@@ -55,8 +55,8 @@ from deplacement import motion_images, motion_to_hsv, draw_direction_wheel
 # cv2.imshow("Deplacement entre img3 et img4", resize_to_fit(np.hstack((img3_denoised_color, cv2.addWeighted(img4_denoised_color, 0.6, draw_direction_wheel(motion_to_hsv(motion_images(img3_denoised, img4_denoised), img1_denoised), radius=80, position=(100, 100)), 0.4, 0)))))
 # cv2.imshow("Deplacement entre img4 et img5", resize_to_fit(np.hstack((img4_denoised_color, cv2.addWeighted(img5_denoised_color, 0.6, draw_direction_wheel(motion_to_hsv(motion_images(img4_denoised, img5_denoised), img1_denoised), radius=80, position=(100, 100)), 0.4, 0)))))
 # cv2.imshow("Deplacement entre img5 et img6", resize_to_fit(np.hstack((img5_denoised_color, cv2.addWeighted(img6_denoised_color, 0.6, draw_direction_wheel(motion_to_hsv(motion_images(img5_denoised, img6_denoised), img1_denoised), radius=80, position=(100, 100)), 0.4, 0)))))
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
+cv2.waitKey(0)
+cv2.destroyAllWindows()
 
 
 def export_pngs(side):
