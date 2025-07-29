@@ -17,7 +17,8 @@ def motion_images(img1, img2):
     return flow
 
 
-def motion_to_hsv(flow, img):
+def motion_to_hsv(flow, img): # mm echelle pour toutes les frames
+    
     # conversion du champ de déplacement en image couleur (hsv)
     magnitude, angle = cv2.cartToPolar(flow[..., 0], flow[..., 1])
     hsv = np.zeros((img.shape[0], img.shape[1], 3), dtype=np.uint8)
