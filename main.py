@@ -72,12 +72,12 @@ def export_pngs(side):
 
         im = resize_to_fit(np.hstack((a_denoised_rgb, cv2.addWeighted(b_denoised_rgb, 0.6, draw_direction_wheel(motion_to_hsv(motion_images(a_denoised, b_denoised), a_denoised), radius=80, position=(100, 100)), 0.4, 0))))
 
-        cv2.imwrite(f"./data/output/{side}/img{i}-to-img{i+1}.jpg", im)
+        cv2.imwrite(f"./output/{side}/img{i}-to-img{i+1}.jpg", im)
 
 
 def export_animation(side):
-    input_path = f'./data/output/{side}'
-    output_path = f'./data/output/animations/{side}_transitions.mp4'
+    input_path = f'./output/{side}'
+    output_path = f'./output/animations/{side}_transitions.mp4'
 
     # si le dossier de sortie n'existe pas, il est créé
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
