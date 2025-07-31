@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+# mm pour chaque pixel -> issu du .cfg des cameras
+MM_PER_PIXEL = 0.0287
 
 def motion_images(img1, img2):
     flow = cv2.calcOpticalFlowFarneback(
@@ -15,15 +17,14 @@ def motion_images(img1, img2):
     )
     return flow
 
-def magnitude_map(flow):
-    # norme quadra du vecteur (dx, dy)
+def magnitude_map(flow, mm_per_pixel=MM_PER_PIXEL):
     magnitude = np.sqrt(flow[..., 0]**2 + flow[..., 1]**2)
-    # flow est en 2d dont on fait 1ere dimension ^2 + 2eme dimensions ^2
-    return magnitude
+    return magnitude * mm_per_pixel
+
 
 if __name__ == "__main__":
-    img1 = cv2.imread("./data/right/img0.tiff", cv2.IMREAD_GRAYSCALE)
-    img2 = cv2.imread("./data/right/img1.tiff", cv2.IMREAD_GRAYSCALE)
+    img1 = cv2.imread("./data/left/img0.tiff", cv2.IMREAD_GRAYSCALE)
+    img2 = cv2.imread("./data/left/img1.tiff", cv2.IMREAD_GRAYSCALE)
 
     if img1 is None or img2 is None:
         raise ValueError("Images non trouvées.")
@@ -33,12 +34,14 @@ if __name__ == "__main__":
 
     # matplotlib pour afficher
     plt.figure(figsize=(10, 8))
-    im = plt.imshow(magnitude, cmap="viridis", origin="upper")
+    height, width = magnitude.shape
+    extent = [0, width * MM_PER_PIXEL, height * MM_PER_PIXEL, 0]
+    im = plt.imshow(magnitude, cmap="viridis", origin="upper", extent=extent)
     plt.title("Norme du champ de déplacement (Farneback)")
-    plt.xlabel("X (pixels)")
-    plt.ylabel("Y (pixels)")
+    plt.xlabel("X (mm)")
+    plt.ylabel("Y (mm)")
     cbar = plt.colorbar(im, fraction=0.046, pad=0.04)
-    cbar.set_label("Amplitude du déplacement (pixels)")
+    cbar.set_label("Amplitude du déplacement (mm)")
     plt.tight_layout()
     plt.show()
 

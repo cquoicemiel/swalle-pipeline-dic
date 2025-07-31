@@ -35,11 +35,11 @@ def process_pair(left_path, right_path, output_path, debug=False):
     imgR = cv2.imread(right_path, cv2.IMREAD_GRAYSCALE)
     
     if imgL is None or imgR is None:
-        print(f"❌ Impossible de charger les images: {left_path}, {right_path}")
+        print(f"impossible de charger les images: {left_path}, {right_path}")
         return False
         
     h, w = imgL.shape
-    print(f"📐 Taille des images: {w}x{h}")
+    print(f"taille des images: {w}x{h}")
 
     # Rectification stéréo
     try:
@@ -63,7 +63,7 @@ def process_pair(left_path, right_path, output_path, debug=False):
             cv2.imwrite(f"debug_rect_right_{os.path.basename(right_path)}", rect_right)
         
     except Exception as e:
-        print(f"❌ Erreur lors de la rectification: {e}")
+        print(f"erreur lors de la rectification: {e}")
         return False
 
     # Paramètres de disparité adaptés aux hautes résolutions
@@ -91,16 +91,16 @@ def process_pair(left_path, right_path, output_path, debug=False):
         mode=cv2.STEREO_SGBM_MODE_SGBM_3WAY
     )
 
-    print(f"🔍 Calcul disparité (min={min_disp}, max={min_disp + num_disp})...")
+    print(f"calcul disparité (min={min_disp}, max={min_disp + num_disp})...")
     disparity = stereo.compute(rect_left, rect_right).astype(np.float32) / 16.0
     
     # Statistiques sur la disparité
     valid_disp = disparity[disparity > 0]
     if len(valid_disp) > 0:
-        print(f"📊 Disparité: min={valid_disp.min():.1f}, max={valid_disp.max():.1f}, "
+        print(f"disparité: min={valid_disp.min():.1f}, max={valid_disp.max():.1f}, "
               f"moyenne={valid_disp.mean():.1f}, points valides={len(valid_disp)}")
     else:
-        print("❌ Aucune disparité valide trouvée!")
+        print("aucune disparité valide trouvée!")
         
         if debug:
             # Sauvegarde pour debug
@@ -124,7 +124,7 @@ def process_pair(left_path, right_path, output_path, debug=False):
     points = points_3D[mask]
     
     if len(points) < 100:
-        print(f"❌ Pas assez de points 3D valides: {len(points)}")
+        print(f"pas assez de points 3D valides: {len(points)}")
         return False
 
     # Chargement de l'image couleur pour les couleurs des points
@@ -142,7 +142,7 @@ def process_pair(left_path, right_path, output_path, debug=False):
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     o3d.io.write_point_cloud(output_path, pcd)
-    print(f"✅ Nuage exporté: {output_path} ({len(points)} points)")
+    print(f"nuage exporté: {output_path} ({len(points)} points)")
     
     if debug:
         # Visualisation de la disparité
@@ -163,13 +163,13 @@ def test_single_pair():
         opath = os.path.join(output_dir, f"cloud_img{i}.ply")
         
         if os.path.exists(lpath) and os.path.exists(rpath):
-            print(f"🧪 Test sur la paire {i}")
+            print(f"test sur la paire {i}")
             success = process_pair(lpath, rpath, opath, debug=True)
             if success:
-                print("✅ Test réussi!")
+                print("test réussi!")
             break
     else:
-        print("❌ Aucune paire d'images trouvée dans ./data/left/ et ./data/right/")
+        print("aucune paire d'images trouvée dans ./data/left/ et ./data/right/")
 
 # BOUCLE PRINCIPALE
 def process_all_pairs():
@@ -189,15 +189,11 @@ def process_all_pairs():
             if process_pair(lpath, rpath, opath):
                 success_count += 1
     
-    print(f"\n📈 Résultats: {success_count}/{total_count} paires traitées avec succès")
+    print(f"\n résultats: {success_count}/{total_count} paires traitées avec succès")
 
 if __name__ == "__main__":
-    print("🚀 Démarrage du traitement stéréo...")
+    print("démarrage du traitement stéréo...")
     
-    # D'abord un test sur une paire
-    test_single_pair()
+    # test_single_pair()
     
-    # Puis traitement de toutes les paires si le test fonctionne
-    response = input("\nVoulez-vous traiter toutes les paires ? (y/N): ")
-    if response.lower() == 'y':
-        process_all_pairs()
+    process_all_pairs()
