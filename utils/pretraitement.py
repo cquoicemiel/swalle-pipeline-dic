@@ -1,9 +1,12 @@
 import cv2
-import numpy as np
-import matplotlib.pyplot as plt
+from logger import get_logger
+
+logger = get_logger(__name__)
 
 def denoise(img):
+    logger.info("débruitage...")
     img_denoised = cv2.bilateralFilter(img, 5, 50, 50)
+    logger.info("image débruitée")
     return img_denoised
 
 

@@ -12,17 +12,22 @@ swalle-pipeline-dic/
 │   ├── animations/
 │   ├── left/
 │   └── right/
-├── deplacement.py
-├── encodage_video.py
-├── export.py
-├── pretraitement.py
-├── stereo.py
+├── utils/
+│   ├── config_loader.py
+│   ├── deplacement.py
+│   ├── encodage_video.py
+│   ├── export.py
+│   ├── logger.py
+│   ├── pretraitement.py
+│   ├── stereo.py
 └── main.py
 ```
 
 
 ## Utilisation
-Placer les photos dans ``/data/left`` et ``/data/right`` chaque angle correspondant à une des deux caméras utilisées 
+Placer les photos issues des deux caméras ``/data/left`` pour les photos de la caméra principale et ``/data/right`` pour celles de la caméra secondaire.
+
+Exécuter le fichier ``main.py`` en modifiant ou nom les instructions, par défaut le programme exporte toutes les transitions avec les déplacements représentés en heatmap pour chaque angle et aussi les videos des transitions associées, qui sont rien de plus que l'enchaînement des images. Les vidéos sont encodé en H.265, permettant leur intégration web et autres utilisations.
 ### Fonctions
 
 ## Modules utilisés
@@ -31,6 +36,7 @@ Placer les photos dans ``/data/left`` et ``/data/right`` chaque angle correspond
 - [Numpy](https://numpy.org/)
 - [Three.js](https://threejs.org/)
 - [ffmpeg](https://ffmpeg.org/)
+
 ## Accès local
 Si vous avez accès au repository GitHub, vous pouvez cloner ce dernier, installer les dépendances puis héberger le projet sur votre machine.
 
